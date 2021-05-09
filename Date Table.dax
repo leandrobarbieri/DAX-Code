@@ -1,0 +1,55 @@
+﻿// Cria uma tabela com um única coluna chamada Date considerando TODAS as datas do modelo
+// Vai sempre do início do ano até o final do ano
+EVALUATE
+CALENDARAUTO ()
+
+
+// Cria uma tabela com o intervalo correspondente a uma coluna específica
+EVALUATE
+VAR vMin = MIN ( Sales[Order Date] ) 
+VAR vMax = MAX ( Sales[Order Date] ) 
+RETURN
+CALENDAR (vMin, vMax)
+
+EVALUATE
+VAR vMin = YEAR ( MIN ( Sales[Order Date] ) )
+VAR vMax = YEAR ( MAX ( Sales[Order Date] ) )
+RETURN
+ADDCOLUMNS (
+    FILTER (
+        CALENDARAUTO( ),
+        AND ( YEAR ( [Date] ) >= vMin, YEAR ( [Date] ) <= vMax )
+    ),
+    "Calendar Year", "CY " & YEAR ( [Date] ),
+    "Month Number", MONTH ( [Date] ),
+    "Month Name", FORMAT ( [Date], "mmmm" ),    
+    "Weekday", FORMAT ( [Date], "dddd" ),
+    "Weekday number", WEEKDAY( [Date] ),
+    "Quarter", "Q" & TRUNC ( ( MONTH ( [Date] ) - 1 ) / 3 ) + 1
+)
+
+
+
+// Cria uma tabela de datas com o intervalo de um subconjunto de datas
+EVALUATE
+VAR vdatas = UNION( ALL(Sales[Order Date]), ALL(Sales[Delivery Date]) )
+
+// Usar MINX e MAXX para iterar na tabela no contexto de linha
+// O nome Order Date é o padrão porque é o primeiro do union
+VAR vMin = MINX (vdatas, [Order Date] )
+VAR vMax = MAXX (vdatas, [Order Date] )
+
+RETURN
+// DISTINCT (vdatas)
+ADDCOLUMNS (
+    FILTER (
+        CALENDARAUTO( ),
+        AND ([Date] >= vMin, [Date] <= vMax )
+    ),
+    "Calendar Year", "CY " & YEAR ( [Date] ),
+    "Month Number", MONTH ( [Date] ),
+    "Month Name", FORMAT ( [Date], "mmmm" ),    
+    "Weekday", FORMAT ( [Date], "dddd" ),
+    "Weekday number", WEEKDAY( [Date] ),
+    "Quarter", "Q" & TRUNC ( ( MONTH ( [Date] ) - 1 ) / 3 ) + 1
+)
