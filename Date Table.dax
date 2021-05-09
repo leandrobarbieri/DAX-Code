@@ -1,10 +1,17 @@
-﻿// Cria uma tabela com um única coluna chamada Date considerando TODAS as datas do modelo
-// Vai sempre do início do ano até o final do ano
+﻿/* ### EXEMPLO 1:
+Cria uma tabela com um única coluna chamada Date considerando TODAS as datas do modelo (se tiver data de aniversário também entra no processo de criação * problema!)
+Calendarauto cria um intervalo de dados sempre do início do ano até o final do ano (anos cheios)
+Cria apenas uma coluna com o nome padrão "Date", as demais colunas derivadas da data precisam ser criadas manualmente
+*/ 
 EVALUATE
 CALENDARAUTO ()
 
 
-// Cria uma tabela com o intervalo correspondente a uma coluna específica
+
+
+/* ### Exemplo 2: Utilizando uma coluna específica do modelo
+Cria uma tabela com o intervalo correspondente a uma coluna específica. Utilizada na maior parte das vezes.
+*/
 EVALUATE
 VAR vMin = MIN ( Sales[Order Date] ) 
 VAR vMax = MAX ( Sales[Order Date] ) 
@@ -30,7 +37,11 @@ ADDCOLUMNS (
 
 
 
-// Cria uma tabela de datas com o intervalo de um subconjunto de datas
+
+/* ### Exemplo 3: Cria uma tabela de datas com o intervalo de um subconjunto de datas 
+Em algumas situações onde o modelo de dados possui muitas colunas de datas que precisam de uma tabela de datas.
+Pode ser necessário criar com base em um subconjunto destas colunas
+*/
 EVALUATE
 VAR vdatas = UNION( ALL(Sales[Order Date]), ALL(Sales[Delivery Date]) )
 
