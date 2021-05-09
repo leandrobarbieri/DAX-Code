@@ -1,0 +1,56 @@
+﻿//Essa medidas pode ser incluída em um painel através da criação de várias calc groups itens um para cada percentual
+// Mais detalhes no vídeo: https://www.youtube.com/watch?v=YIXWrpmzss4
+
+EVALUATE
+
+// Tabela de produtos com o total
+VAR ProdsAndSales =
+    ADDCOLUMNS (
+        VALUES ( 'Product'[Product Name] ),
+        //ALLSELECTED( 'Product'[Product Name] ), // Alterar quando incluir como item em calc group
+        "@SalesAmt", [Sales Amount]
+    )
+ 
+// Total geral SalesAmt que será usado para fazer o percentual no RunningTotal
+VAR TotalSales = SUMX ( ProdsAndSales, [@SalesAmt] )
+    
+// Tabela com o acumulado de SalesAmt por produtos, do maior para o menor
+VAR ProdAndSalesRunningTotal = 
+	ADDCOLUMNS(
+		ProdsAndSales,		
+		"@SalesAmtRunningTotal", 
+			// SalesAmt do contexto de linha atual
+			VAR CurrentSalesAmt = [@SalesAmt]
+			
+			// Tabela com todos os produtos que possuem SalesAmt maior que o total da linha atual (ou seja os que estão acima dele)
+			VAR MaioresValores = 
+				FILTER ( ProdsAndSales,
+					[@SalesAmt] >= CurrentSalesAmt
+				)
+			RETURN
+				// Para checagem da quantidade de itens maiores que o atual
+				//COUNTROWS( MaioresValores )
+				SUMX(MaioresValores, [@SalesAmt])				
+	)
+	
+
+// Tabela com a coluna RunningTotal em percentual. Divide o running total da linha atual com o total geral 
+VAR ProdAndSalesRunningTotalPerc = 
+	ADDCOLUMNS(
+		ProdAndSalesRunningTotal,		
+		"@SalesAmtRunningTotalPercent", DIVIDE( [@SalesAmtRunningTotal], TotalSales ),
+		"@SalesAmtRunningTotalPercentFormat", FORMAT( DIVIDE( [@SalesAmtRunningTotal], TotalSales ), "#0.00%")
+	)
+
+
+VAR Result = FILTER ( ProdAndSalesRunningTotalPerc, [@SalesAmtRunningTotalPercent] <= 0.10 )
+
+RETURN
+    Result
+
+ORDER BY [@SalesAmt] DESC
+
+
+
+
+

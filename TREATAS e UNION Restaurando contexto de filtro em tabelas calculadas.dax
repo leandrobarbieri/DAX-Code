@@ -1,0 +1,66 @@
+﻿// Utilizando UNION em conjunto com TREATAS na construção de tabelas calculadas https://dax.do/nr95bQRwbQfrS5/
+
+//UNION: Usado com frequencia para criar calculated tables ou como parte de medidas CALCULATETABLE
+// Cria uma tabela com todas as opções de CountryRegion (pode incluir duplicadas)
+EVALUATE
+UNION (
+    ALL(Customer[CountryRegion]),
+    ALL(Store[CountryRegion])
+)
+// Não faz DISTINCT
+//ORDER BY Customer[CountryRegion]
+
+
+
+// A tabela criada com UNION não mantém o relacionamento físico, portanto o contexto de filtro de uma medida não se propaga automaticamente como no exemplo abaixo
+EVALUATE
+VAR CountryRegion = 
+    /*ALL(Customer[CountryRegion])*/
+    UNION (
+        ALL(Customer[CountryRegion]),
+        ALL(Store[CountryRegion])
+    )
+VAR CountryRegionUnique = 
+    DISTINCT ( CountryRegion )
+
+RETURN
+	// Sales Amount retorna o mesmo resultado para todas as regiões, porque não consegue propagar o filtro em uma tabela criada com union
+    ADDCOLUMNS (
+        CountryRegionUnique,
+        "@Sales Amount", [Sales Amount]
+    )
+    
+    
+    
+// Restaurando o relacionamento físico com TREATAS
+EVALUATE
+VAR CountryRegion = 
+    UNION (
+        ALL(Customer[CountryRegion]),
+        ALL(Store[CountryRegion])
+    )
+VAR CountryRegionUnique = 
+    DISTINCT ( CountryRegion )
+
+RETURN
+    ADDCOLUMNS (
+        CountryRegionUnique,
+        "@Sales Amount Customer", 
+            CALCULATE (
+                [Sales Amount],
+                // Treatas aplica o filtro da coluna CountryRegion da tabela construida com o UNION na tabela do modelo, fazendo com que a Sales Amount funcione
+                TREATAS ( { [CountryRegion] } , Customer[CountryRegion])
+            ),
+            
+        "@Sales Amount Store", 
+         CALCULATE (
+            [Sales Amount],                
+            TREATAS ( { [CountryRegion] } , Store[CountryRegion])
+            )
+   )
+
+ 
+ 
+ 
+ 
+ 

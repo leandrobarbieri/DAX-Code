@@ -1,0 +1,28 @@
+﻿// Este exemplo mostra uma análise na tabela de cidadãos que tomaram a primeira dose de vacina D1 e tomaram a segunda 28 dias depois
+// Identificar apenas os cidadão que tomaram a segunda dose 28 dias depois
+
+// Cria uma tabela através da junção de D1 com D2 através da coluna CNS e retorna apenas a data da coluna D2
+Total Tomou D2 = 
+VAR tomouD2 = 
+	ADDCOLUMNS(
+		D1,
+		"@TomouD2", LOOKUPVALUE(D2[Data], D2[CNS], D1[CNS])
+	)
+
+// Adiciona a diferença em dias entre a data de D1 e D2
+var tomouD228Dias = 
+	ADDCOLUMNS(
+		tomouD2,
+		"QtdDias", DATEDIFF(D1[Data], [@TomouD2], DAY)
+	)
+
+// Filtra apenas as datas que o cidadão tomou a segunda dose depois de 28 dias
+	
+var resultado = 
+	FILTER(
+		tomouD228Dias,
+		[QtdDias] >= 28
+	)
+
+RETURN
+COUNTROWS(resultado)

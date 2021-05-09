@@ -1,0 +1,65 @@
+﻿// CROSSJOIN em medidas DAX para primorar o desempenho de consultas https://dax.do/GYL4ccHg4qbT9G, https://youtu.be/xiqdjue5cSs
+
+EVALUATE   
+// Retorna todas as combinações (produto catesiano)
+CROSSJOIN (
+    ALL ( 'Product'[Product Name] ),
+    ALL ( 'Date'[Calendar Year] )
+)
+
+/* SUMMARIZE: para retornar todas as combinações também podemos usar SUMMARIZE para obter o mesmo resultado que CROSSJOIN
+ Exemplo: Produtos com a categoria Audio OR que tiveram Sales em 2007. Mas para isso teriamos que usar a tabela Sales que é grande e isso não é bom */
+DEFINE MEASURE Sales[CategoriaSales2007] = 
+VAR CategoriaSales2007 = 
+    SUMMARIZE (
+        Sales,
+        'Product'[Category],
+        'Date'[Calendar Year]
+    )
+VAR Audio2007 = 
+    FILTER (
+        CategoriaSales2007,
+        OR ('Product'[Category] = "Audio", 'Date'[Calendar Year] = "CY 2007")
+    )
+RETURN
+CALCULATE (
+    [Sales Amount],
+    Audio2007
+)
+           
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Product'[Product Name],
+    "@Sales_ProdutosCategoriaAudio2007", Sales[CategoriaSales2007]
+)
+
+
+
+
+// Usando CROSSJOIN: Para obter o mesmo resultado mas sem ter que envolver a tabela de Sales que pode ter bilhoes de linhas
+DEFINE 
+MEASURE Sales[CategoriaSales2007_CROSSJOIN] = 
+VAR CategoriasAnos = 
+    // Faz um produto cartesiano com todas as combinações entre as duas colunas
+    CROSSJOIN (
+        ALL ('Product'[Category]),
+        ALL ( 'Date'[Calendar Year])
+    )
+// Filtra apenas as combinações de interesse    
+VAR CategoriaAnos_Filtrada = 
+    FILTER (
+        CategoriasAnos,
+        OR ( 'Product'[Category] = "Audio", 'Date'[Calendar Year] = "CY 2007")
+    )
+RETURN
+    // Retorna a medida usando apenas a tabela filtrada
+    CALCULATE (
+        [Sales Amount],
+        CategoriaAnos_Filtrada
+    )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Product'[Product Name],
+    "@Sales_ProdutosCategoriaAudio2007", Sales[CategoriaSales2007_CROSSJOIN]
+)

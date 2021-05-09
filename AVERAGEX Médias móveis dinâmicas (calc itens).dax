@@ -1,0 +1,52 @@
+﻿// Medidas de Média móvel usando CALCULATION GROUPS para dar opção para diversos períodos e medidas
+// Incluir vários calc itens com variações do numero de meses e substituir a medida [Sales Amount] pela SELECTEDMEASURE() 
+// As médias móveis serão genérias e poderão ser aplicadas a qualquer métrica.
+// https://www.youtube.com/watch?v=ACvYaXnpyCM
+
+
+DEFINE 
+// 1- Se calcularmos a média no nível de mês a média é o próprio valor, no nível de ano a média é dos 12 meses do ano. Essa é uma forma errada pois não generaliza
+MEASURE
+    Sales[SalesMediaMensal] = 
+        AVERAGEX (
+            VALUES ( 'Date'[Calendar Year Month Number] ),
+            [Sales Amount]
+        )
+
+
+// 2- Média dos últimos 12 meses. Usar DATESINPERIOD. 
+// Utiliza a data de referência (maior data do contexto atual) e uma duração (parametro)
+MEASURE
+    Sales[SalesUltimos12Meses] = 
+        // No contexto do mês representa o último dia do mês
+        VAR ultimaData = MAX ( 'Date'[Date] )
+        
+        // Com base no último dia do mes do contexto atual, cria uma tabela com todas as datas dos ultimos 12 meses
+        VAR periodo = DATESINPERIOD ('Date'[Date], ultimaData, -12, MONTH )  
+        
+        VAR resultado = 
+            // Retorna a média mensal considerando a período dos últimos 12 meses
+            CALCULATE (
+                AVERAGEX (
+                    VALUES ( 'Date'[Calendar Year Month Number] ),
+                    [Sales Amount]
+                ),
+                // Período usado na média
+                periodo
+            )
+        RETURN
+            // Checar se no mês houve vendas. Porque Para os meses que não tiveram vendas mesmo assim retorna a média.
+            IF ( [Sales Amount] > 0, resultado)
+
+EVALUATE
+    SUMMARIZECOLUMNS (
+        'Date'[Calendar Year],
+        'Date'[Calendar Year Month Number],
+        "@Sales", [Sales Amount],
+        "@SalesMediaMensal", Sales[SalesMediaMensal],
+        "@SalesMedia12Meses", Sales[SalesUltimos12Meses]
+    )
+
+        
+        
+

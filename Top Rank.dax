@@ -1,0 +1,63 @@
+﻿--Top 10 estabelecimentos em 2019	
+EVALUATE
+	CALCULATETABLE(
+		TOPN(10, 
+			SUMMARIZECOLUMNS(				
+				DimESTABELECIMENTO[ESTABELECIMENTO],
+				"Total", 
+				[Quantidade de Serviços Encerrados]
+			),
+			[Total]
+		),			
+		Datas[Ano] = 2019
+	)
+	ORDER BY [Total] desc	
+	 
+	
+	
+
+--Retorna os 3 maiores diagnosticos por estabelecimentos
+EVALUATE
+	GENERATE(
+		ALL(DimESTABELECIMENTO[ESTABELECIMENTO]),
+		TOPN(3,
+			SUMMARIZECOLUMNS(						
+				DimDIAGNOSTICO[DIAGNOSTICO],
+				"Total", [Quantidade de Serviços Iniciados]
+			),
+		    [Quantidade de Serviços Iniciados]
+		)
+	)
+	ORDER BY DimESTABELECIMENTO[ESTABELECIMENTO],  [Quantidade de Serviços Iniciados] DESC
+			
+
+
+
+
+--Top 10 estabelecimentos em 2019	
+EVALUATE
+	CALCULATETABLE(		
+			ADDCOLUMNS(				
+				VALUES(DimPACIENTE[PACIENTE]),
+				"Total", [Quantidade de Serviços Iniciados],
+				"Rank", RANKX(ALL(DimPACIENTE[PACIENTE]),[Quantidade de Serviços Iniciados]),
+				"Rank Dense", RANKX(ALL(DimPACIENTE[PACIENTE]),[Quantidade de Serviços Iniciados],,, DENSE)
+			),					
+		Datas[Ano] = 2019
+	)
+	ORDER BY [Total] desc	
+	
+	
+EVALUATE
+	SAMPLE(10, DimESTABELECIMENTO, DimESTABELECIMENTO[MUNICIPIO])	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

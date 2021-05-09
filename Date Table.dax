@@ -2,11 +2,12 @@
 Cria uma tabela com um única coluna chamada Date considerando TODAS as datas do modelo (se tiver data de aniversário também entra no processo de criação * problema!)
 Calendarauto cria um intervalo de dados sempre do início do ano até o final do ano (anos cheios)
 Cria apenas uma coluna com o nome padrão "Date", as demais colunas derivadas da data precisam ser criadas manualmente
-*/ 
+https://dax.do/soYgJSgrrmIm4a/ 
+https://youtu.be/fKbuZL_T17A */ 
+
+
 EVALUATE
 CALENDARAUTO ()
-
-
 
 
 /* ### Exemplo 2: Utilizando uma coluna específica do modelo

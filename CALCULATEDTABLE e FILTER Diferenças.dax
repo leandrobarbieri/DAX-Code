@@ -1,0 +1,83 @@
+﻿/* Uma dúvida comum é qual é a diferença entre CALCULATETABLE e FILTER 
+já que ambas funções retornam tabelas filtradas
+https://youtu.be/QGceumHaNT4
+https://dax.do/1WGHxaKjwBfBvt/
+https://leandrobarbieri.blogspot.com/2021/03/diferencas-entre-calculatedtable-e.html
+*/
+
+//A primeia coisa que ela faz é mudar o contexto de filtro antes de avaliar a expression no filtro
+EVALUATE
+    CALCULATETABLE (
+        'Product',
+        'Product'[Color] = "Red"
+    )
+    
+//Não muda o contexto de filtro, apenas aplica o filtro e pronto
+// Retorna o mesmo resultado em situações simples como esta
+EVALUATE
+    FILTER (
+        'Product',
+        'Product'[Color] = "Red"
+    )
+    
+    
+ // Avaliando as diferenças entre CALCULATETABLE e FILTER
+ 
+ // Avalia o contexto no SEGUNDO argumento, depois da o calculo, em cima do novo contexto
+ // sem a necessidade de transição para contexto de linha
+ EVALUATE
+     CALCULATETABLE (
+         ADDCOLUMNS (
+             VALUES ('Product'[Color]),
+             "Quantidade de produtos", COUNTROWS ('Product')
+         ),
+         'Product'[Color] = "Red"
+     )
+     
+     
+  // O resultado é diferente, conta todos os produtos porque FILTER não altera o contexto de filtro para Red
+  // FILTER é avaliado depois de ADDCOLUMNS
+  EVALUATE
+      FILTER (
+          ADDCOLUMNS(
+              VALUES ('Product'[Color]),
+              "Quantidade de produtos", COUNTROWS ( 'Product' )
+          ),
+          'Product'[Color] = "Red"
+      )
+      
+      
+  // A forma correta de usar filter é sempre dentro de um contexto para evitar esse tipo de problema do exemplo acima
+  EVALUATE
+      ADDCOLUMNS (
+          FILTER (
+              VALUES ( 'Product'[Color] ),
+              'Product'[Color] = "Red"              
+           ),
+           // O uso do CALCULATE força a transição de contexto de linha para filtro
+           "Quantidade de produtos",  CALCULATE ( COUNTROWS ( 'Product' ) )
+       )
+           
+           
+// Outra diferença é que CALCULATETABLE só aplica filtro em colunas que existe no modelo, 
+// já filter consegue filtrar medidas
+
+EVALUATE
+    FILTER(
+        Customer,
+        [Sales Amount] > 100000
+     )
+     
+//Erro    
+//EVALUATE
+    //CALCULATETABLE (
+   //     Customer,
+    //   [Sales Amount] > 100000
+    // )
+   
+              
+  
+                  
+     
+     
+ 
