@@ -1,0 +1,69 @@
+﻿// Alias para ALL, remove os filtros de uma coluna, tabela ou do modelo inteiro
+
+// Aplicando todos os filtros
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        'Product'[Category],
+        'Product'[Brand],
+        'Product'[Color]
+    ),
+    'Product'[Brand] = "Litware",
+    'Product'[Color] = "Red"
+)
+
+// Removendo os filtros de uma coluna
+EVALUATE
+CALCULATETABLE (
+    CALCULATETABLE (
+        SUMMARIZECOLUMNS (
+            'Product'[Category],
+            'Product'[Brand], 
+            'Product'[Color]
+       ),
+       REMOVEFILTERS ( 'Product'[Color] )
+    ),
+    'Product'[Brand] = "Litware",
+    'Product'[Color] = "Red"
+)
+
+// Removendo os filtros de uma tabela inteira
+EVALUATE
+CALCULATETABLE (
+    CALCULATETABLE (
+        SUMMARIZECOLUMNS (
+            'Date'[Calendar Year],
+            'Product'[Category],
+            'Product'[Brand], 
+            'Product'[Color]
+       ),
+       REMOVEFILTERS ( 'Product' )
+    ),
+    'Date'[Calendar Year] = "CY 2007",
+    'Product'[Brand] = "Litware",
+    'Product'[Color] = "Red"
+)
+
+
+// Removendo os filtros de uma tabela inteira
+EVALUATE
+CALCULATETABLE (
+    CALCULATETABLE (
+        SUMMARIZECOLUMNS (            
+            'Date'[Calendar Year],
+            'Product'[Category],
+            'Product'[Brand], 
+            'Product'[Color]
+       ),
+       REMOVEFILTERS ( )
+    ),
+    'Date'[Calendar Year] = "CY 2007",
+    'Product'[Brand] = "Litware",
+    'Product'[Color] = "Red"
+)
+
+
+
+   
+    
+        
