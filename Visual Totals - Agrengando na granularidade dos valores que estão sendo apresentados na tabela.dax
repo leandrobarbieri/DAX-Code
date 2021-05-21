@@ -1,0 +1,54 @@
+﻿DEFINE
+MEASURE Sales[Sales Amount] = SUMX( Sales, Sales[Quantity] * Sales[Net Price])
+MEASURE Sales[WorkingDays] = CALCULATE ( COUNTROWS ('Date'), 'Date'[Working Day] = "WorkDay" )
+
+// Irá corrigir no nível de mês quando não houver Sales, mas no nível de ano sempre terá vendas, então continua apresentado o total de dias completo do ano
+MEASURE Sales[WorkingDaysWithSales] = 
+    IF( [Sales Amount] > 0,
+        CALCULATE ( 
+            COUNTROWS ('Date'), 
+            'Date'[Working Day] = "WorkDay" 
+        )
+    )
+    
+// Isso irá considerar a granularidade do mes como forma de agregação
+MEASURE Sales[WorkingDaysWithSalesCorrect] = 
+    SUMX(
+        KEEPFILTERS ( VALUES ( 'Date'[Calendar Year Month] ) ),
+        IF (
+            [Sales Amount] > 0,
+            CALCULATE ( COUNTROWS ( 'Date' ), 'Date'[Working Day] = "WorkDay" )
+        )
+    )
+            
+    
+    
+MEASURE Sales[SalesPerWorkingDay] = DIVIDE ( [Sales Amount], [WorkingDays] )
+
+// Analisar por mês
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        'Date'[Calendar Year],
+        'Date'[Calendar Year Month],
+        "Sales Amount", [Sales Amount],
+        "SalesPerWorkingDay", [SalesPerWorkingDay],
+        "WorkingDays", [WorkingDaysWithSalesCorrect]
+    ),
+   'Date'[Calendar Year] = "CY 2007" 
+)
+
+
+
+
+// Analisar por mês
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        'Date'[Calendar Year],      
+        "Sales Amount", [Sales Amount],
+        "SalesPerWorkingDay", [SalesPerWorkingDay],
+        "WorkingDays", [WorkingDaysWithSalesCorrect]
+    ),
+   'Date'[Calendar Year] >= "CY 2007" 
+)

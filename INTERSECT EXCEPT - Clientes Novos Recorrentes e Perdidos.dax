@@ -1,0 +1,56 @@
+﻿DEFINE
+MEASURE Sales[ClientesTotal] = COUNTROWS(VALUES(Sales[CustomerKey]))
+
+MEASURE Sales[ClientesNovos] =     
+    VAR vClientesAtual = 
+        VALUES ( Sales[CustomerKey] )        
+    VAR vClientesAnterior = 
+        CALCULATETABLE ( 
+            VALUES ( Sales[CustomerKey] ),
+            DATESINPERIOD ( 'Date'[Date], MIN('Date'[Date]) - 1, -1, YEAR )
+        )        
+    VAR vClientesNovos = EXCEPT ( vClientesAtual, vClientesAnterior )
+    RETURN
+    COUNTROWS (vClientesNovos)
+  
+ MEASURE Sales[ClientesRecorrentes] =     
+    VAR vClientesAtual = 
+        VALUES ( Sales[CustomerKey] )        
+    VAR vClientesAnterior = 
+        CALCULATETABLE ( 
+            VALUES ( Sales[CustomerKey] ),
+            DATESINPERIOD ( 'Date'[Date], MIN('Date'[Date]) - 1, -1, YEAR )
+        )        
+    VAR vClientesRecorrentes = INTERSECT ( vClientesAtual, vClientesAnterior )
+    RETURN
+    COUNTROWS (vClientesRecorrentes) 
+ 
+MEASURE Sales[ClientesPerdidos] =     
+    VAR vClientesAtual = 
+        VALUES ( Sales[CustomerKey] )        
+    VAR vClientesAnterior = 
+        CALCULATETABLE ( 
+            VALUES ( Sales[CustomerKey] ),
+            DATESINPERIOD ( 'Date'[Date], MIN('Date'[Date]) - 1, -1, YEAR )
+        )        
+    VAR vClientesPerdidos = EXCEPT (vClientesAnterior, vClientesAtual )
+    RETURN
+    COUNTROWS (vClientesPerdidos) 
+    
+    
+
+EVALUATE
+SUMMARIZECOLUMNS (    
+    'Date'[Calendar Year],
+    "Sales", [Sales Amount],
+    "Clientes Total", [ClientesTotal],
+    "Clientes Novos", [ClientesNovos],
+    "Clientes Recorrentes", [ClientesRecorrentes],
+    "Clientes Perdidos", [ClientesPerdidos]    
+)
+ORDER BY 'Date'[Calendar Year] ASC
+
+        
+        
+        
+        

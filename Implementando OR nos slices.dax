@@ -1,0 +1,70 @@
+﻿// Implmentação a condição OR para os slices
+// Alterando o comportamento padrão usando DAX
+
+DEFINE 
+MEASURE Sales[SalesORCategoryEducation] =  
+
+// Todas as combinações das duas colunas
+VAR CategoryEducation = 
+    CROSSJOIN (
+        ALL('Product'[Category]),
+        ALL(Customer[Education])
+    )
+
+// Filtrando apenas os itens selecionados das duas colunas
+VAR CategoryEducationSelecionados = 
+    FILTER ( 
+        CategoryEducation,
+        OR( 'Product'[Category] IN ( VALUES ('Product'[Category]) ),
+             Customer[Education] IN ( VALUES (Customer[Education]) )
+          )
+    )    
+RETURN
+CALCULATE ( 
+    [Sales Amount],
+    CategoryEducationSelecionados
+)
+
+// Usando SUMMARIZE
+MEASURE Sales[SalesORCategoryEducation_SUMMARIZE] = 
+VAR CategoryEducation = 
+    CALCULATETABLE (
+        SUMMARIZE (
+            Sales,
+            'Product'[Category],
+            Customer[Education]
+        ),
+        REMOVEFILTERS ('Product'[Category]),
+        REMOVEFILTERS (Customer[Education])
+   )
+VAR CategoryEducationSelecionados = 
+    FILTER ( CategoryEducation,
+        OR (
+            'Product'[Category] IN ( VALUES ('Product'[Category]) ),
+            Customer[Education] IN ( VALUES (Customer[Education]) )
+        )
+    )
+RETURN
+CALCULATE (
+    [Sales Amount],
+    CategoryEducationSelecionados
+)
+
+EVALUATE
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        'Date'[Calendar Year],
+        "Sales", [Sales Amount],
+        "SalesORCategoryEducation", [SalesORCategoryEducation],
+        "SalesORCategoryEducation_SUMMARIZE", [SalesORCategoryEducation_SUMMARIZE]
+    ),
+    'Product'[Category] = "Computers",
+    Customer[Education] = "High School"
+)
+    
+
+
+    
+        
+        
+    
