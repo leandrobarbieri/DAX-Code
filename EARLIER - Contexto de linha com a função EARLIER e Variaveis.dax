@@ -1,0 +1,33 @@
+﻿// Usando a função EARLIER
+EVALUATE
+// Contexto de linha 1
+SELECTCOLUMNS (
+    'Product',
+    "Produto", 'Product'[Product Name],
+    "Preco", 'Product'[Unit Price],
+    "Rank",
+    COUNTROWS ( 
+        // Contexto de linha 2
+        FILTER (
+            VALUES ('Product'[Unit Price] ),
+            // EARLIER acessa o valor de Unit Price do contexto de linha anterior dentro desse novo contexto criado pela função filter
+            'Product'[Unit Price] > EARLIER ( 'Product'[Unit Price])
+        )
+     )+ 1
+)
+ORDER BY [rank]
+
+
+// Simplificando usando variáveis
+EVALUATE
+SELECTCOLUMNS (
+    'Product',
+    "Produto", 'Product'[Product Name],  
+    "Preco", 'Product'[Unit Price],
+    "rank", 
+        VAR vPreco = 'Product'[Unit Price]
+        VAR vProdutosMaisCaros = FILTER ( 'Product', 'Product'[Unit Price] > vPreco)
+        RETURN
+        COUNTROWS (vProdutosMaisCaros) + 1
+)
+ORDER BY [rank]

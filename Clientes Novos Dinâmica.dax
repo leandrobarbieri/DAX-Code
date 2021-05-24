@@ -1,0 +1,31 @@
+﻿// https://dax.do/lKalU1P9JA2Dhg/
+
+// Clientes novos em qualquer granularidade de datas
+DEFINE
+MEASURE Sales[ClientesNovos] = 
+VAR vClientesDataPrimeraCompra = 
+    CALCULATETABLE (   
+        ADDCOLUMNS (
+            // Clientes que compraram
+            VALUES ( Sales[CustomerKey] ),
+            // Altera o contexto de linha para filtro usando CALCULATE
+            "DataPrimeiraCompra", CALCULATE ( MIN ( Sales[Order Date] ) )
+        ),
+        // Remove filtros para garantir que todas as compras estão sendo avaliadas
+        ALL( 'Date' )
+    )
+// Filtra apenas os clientes em que a primeira compra estão IN dentro das datas do contexto atual VALUES
+VAR vClientesComprasPeriodoAtual = 
+    FILTER (
+        vClientesDataPrimeraCompra,        
+        [DataPrimeiraCompra] IN VALUES ( 'Date'[Date] )
+    )    
+RETURN
+COUNTROWS ( vClientesComprasPeriodoAtual )
+
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Date'[Calendar Year],
+    'Date'[Calendar Year Month Number],
+    "ClientesNovos", [ClientesNovos]
+)
