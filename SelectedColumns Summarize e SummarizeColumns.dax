@@ -1,0 +1,71 @@
+﻿EVALUATE
+SELECTCOLUMNS (
+    Customer,
+    "Genero", Customer[Gender],
+    "Educação", Customer[Education]
+)
+
+EVALUATE
+DISTINCT (
+SELECTCOLUMNS (
+    Customer,
+    "Genero", Customer[Gender],
+    "Educação", Customer[Education]
+//    "Nova", Customer[City] & "/" & Customer[CountryRegion]
+)
+)
+
+EVALUATE
+SUMMARIZE ( 
+    Customer,
+    Customer[Gender],
+    Customer[Education]    
+)
+
+
+EVALUATE
+SUMMARIZECOLUMNS (    
+    Customer[Gender],
+    Customer[Education]    
+)
+
+// Nova coluna
+EVALUATE
+SELECTCOLUMNS (
+    Customer,
+    "Genero", Customer[Gender],
+    "Educação", Customer[Education],
+    "NovaColuna", Customer[City] & "/" & Customer[CountryRegion]
+)
+
+
+
+// Contexto de filtro
+EVALUATE
+SUMMARIZECOLUMNS (    
+    Customer[Gender],
+    Customer[Education],
+    "Nova", CONCATENATEX (Customer,  Customer[City] & "/" & Customer[CountryRegion], " | " )
+)
+
+
+//Precisa de calculate porque está no contexto de linha
+EVALUATE
+ADDCOLUMNS(
+    SUMMARIZE (
+        Customer,
+        Customer[Gender],
+        Customer[Education]    
+    ),
+    "NovaColuna", CALCULATE(CONCATENATEX (Customer,  Customer[City] & "/" & Customer[CountryRegion], " | " ))
+)
+
+
+
+
+
+
+
+
+
+
