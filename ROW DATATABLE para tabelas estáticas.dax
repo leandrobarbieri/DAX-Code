@@ -1,0 +1,44 @@
+﻿// Criando tabelas estáticas
+
+//ROW> Apenas uma linha. Perminte nomear as colunas
+EVALUATE
+UNION (
+ROW(
+    "Sales", [Sales Amount],
+    "Quantidade", SUM( Sales[Quantity] ) ,
+    "Valor", 1
+),
+ROW(
+    "Sales", [Sales Amount]*2,
+    "Quantidade", SUM( Sales[Quantity] ) * 2,
+    "Valor", 2
+)
+)
+
+
+//Sintaxe {}: Não permite definir nome
+EVALUATE
+{
+    ([Sales Amount], SUM( Sales[Quantity] ), 1 ),
+    ([Sales Amount] * 2, SUM( Sales[Quantity]) * 2 , 2 )    
+}
+
+
+EVALUATE
+//Usando DATATABLE: Perminte definir nome e tipo
+// Aceita somente valores estáticos, não aceita medidas ou expressões
+DATATABLE (
+    "Sales", DOUBLE,
+    "Quantidade", DOUBLE,
+    "Valor", INTEGER,
+    
+    //Sintaxe {}
+    {
+        { 1000, 100, 1 },
+        { 2000, 200, 2 }
+        //{ [Sales Amount], SUM(Sales[Quantity]), 1 }
+        //{ [Sales Amount] * 2, SUM(Sales[Quantity]) * 2, 2 }
+    }
+)
+
+

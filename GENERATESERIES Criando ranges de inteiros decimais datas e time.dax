@@ -1,0 +1,31 @@
+﻿//https://dax.do/u0yrALr7wLqN68/
+
+//https://www.sqlbi.com/articles/generating-a-series-of-numbers-in-dax/
+//https://dax.guide/generateseries/
+
+EVALUATE
+GENERATESERIES ( 1, 10, 1 )
+
+EVALUATE
+SELECTCOLUMNS (
+    GENERATESERIES ( 0, 1, 0.01 ),
+    "Valor", [Value],
+    "Perc", FORMAT ([Value], "0.00%")
+)
+
+
+EVALUATE
+ADDCOLUMNS (
+    GENERATESERIES ( DATE(2021,06,01), DATE(2021,06,10), 1 ),
+    "Ano", YEAR([Value]), 
+    "Mês", FORMAT ([Value], "mm/yyyy")
+)
+
+EVALUATE
+ADDCOLUMNS (
+    GENERATESERIES ( TIME(0,0,0), TIME(23, 59, 59), TIME(0,0,1) ),
+    "Time", FORMAT([Value], "HH:MM AM/PM")
+)
+ORDER BY [Value] 
+    
+    
