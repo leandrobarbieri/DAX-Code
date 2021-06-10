@@ -1,0 +1,47 @@
+﻿// https://dax.do/qkH2hlqzM5FV4T/
+
+/* Definição de tabelas, medidas, variaveis de query */
+DEFINE
+
+// Medidas
+/* Ao definir uma medida com o mesmo nome de uma que já existe a definição irá sobrescrever. Muito útil para testar medidas e fazer otimização */
+MEASURE Sales[Sales Amount] = SUMX( Sales, Sales[Net Price] * Sales[Quantity] )
+MEASURE Sales[BigSales] = CALCULATE ( [Sales Amount], Sales[Net Price] >= 200 )
+
+// Tabelas
+VAR vCategorias = 
+    ADDCOLUMNS (
+        SUMMARIZE ( Sales, 'Product'[Category]),
+        "TotalBigSales", [BigSales]
+    )
+
+// Variaveis: Não precisa de usar o RETURN
+VAR vMin = 10000
+VAR vMax = 8000000
+
+
+/* Execução: Usando das definições */
+/* Todas as execuções podem usar as variaveis e medidas definidas */
+EVALUATE
+    FILTER (
+        vCategorias,
+        [TotalBigSales] > vMin && [TotalBigSales] < vMax
+    )
+ORDER BY [TotalBigSales] DESC
+
+
+// Novo EVALUATE usa as definições: as variáveis de query podem ser reaproveitadas para todas as querys do script
+EVALUATE
+
+// Variaveis de expressão: precisam de usar RETURN
+VAR vItens = 2
+RETURN
+    TOPN(
+        vItens,
+        FILTER (
+            vCategorias,
+            [TotalBigSales] > vMin && [TotalBigSales] < vMax
+        )
+    )    
+// Ordernação
+ORDER BY [TotalBigSales] DESC
