@@ -1,0 +1,66 @@
+﻿// Com medidas
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Product'[Category],
+    'Date'[Calendar Year],
+    "Sales", [Sales Amount]
+)
+
+
+// Com filtros
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Product'[Category],
+    'Date'[Calendar Year],
+    FILTER (
+        ALL('Date'),
+        'Date'[Calendar Year] = "CY 2007"
+    ),
+    "Sales", [Sales Amount]
+)
+
+
+//Com totais
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Product'[Category],
+    ROLLUPADDISSUBTOTAL (
+        'Date'[Calendar Year],
+        "Total Ano"
+    ),
+    "Sales", [Sales Amount]
+)
+ORDER BY 'Product'[Category], 'Date'[Calendar Year]
+
+
+
+//Com totais nas duas dimensões
+EVALUATE
+SUMMARIZECOLUMNS (   
+    ROLLUPADDISSUBTOTAL (
+        'Date'[Calendar Year],
+        "Total Ano"
+    ),
+    ROLLUPADDISSUBTOTAL (
+        'Product'[Category],
+        "Total Categoria"
+    ),
+    "Sales", [Sales Amount]
+)
+ORDER BY 'Product'[Category], 'Date'[Calendar Year]
+
+
+
+//Com total somente no geral
+EVALUATE
+SUMMARIZECOLUMNS (
+    ROLLUPADDISSUBTOTAL (
+        ROLLUPGROUP (        
+            'Product'[Category],
+            'Date'[Calendar Year]            
+        ),
+        "Total"
+    ),
+    "Sales", [Sales Amount]
+)
+ORDER BY 'Product'[Category], 'Date'[Calendar Year]
