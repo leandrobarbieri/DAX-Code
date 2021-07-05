@@ -1,0 +1,151 @@
+﻿EVALUATE
+	SUMMARIZECOLUMNS(
+		DimSTATUS[STATUS], 
+		"Total", 
+		[Quantidade de Serviços Encerrados]
+	)
+ORDER BY [Quantidade de Serviços Encerrados] DESC
+
+
+EVALUATE
+	SUMMARIZE(
+		FactSERVICOPAGAMENTO,
+		DimSTATUS[STATUS],
+	
+		"Total", [Quantidade de Serviços Encerrados]
+	)
+
+
+
+EVALUATE
+	CALCULATETABLE(
+		SUMMARIZE(
+			FactSERVICO,
+			DimESTABELECIMENTO[ESTABELECIMENTO],
+			"Total", 
+			[Quantidade de Serviços Encerrados]
+		),
+		Datas[Ano] = 2019
+	)
+	ORDER BY [Quantidade de Serviços Encerrados] desc	 
+	
+	
+	
+	
+	
+--Top 10 estabelecimentos em 2019	
+EVALUATE
+	CALCULATETABLE(
+		TOPN(10, 
+			SUMMARIZECOLUMNS(				
+				DimESTABELECIMENTO[ESTABELECIMENTO],
+				"Total", 
+				[Quantidade de Serviços Encerrados]
+			),
+			[Total]
+		),			
+		Datas[Ano] = 2019
+	)
+	ORDER BY [Total] desc	
+	 
+
+	 
+	
+	
+
+--Retorna os 3 maiores diagnosticos por estabelecimentos
+EVALUATE
+	GENERATE(
+		ALL(DimESTABELECIMENTO[ESTABELECIMENTO]),
+		TOPN(3,
+			SUMMARIZECOLUMNS(						
+				DimDIAGNOSTICO[DIAGNOSTICO],
+				"Total", [Quantidade de Serviços Iniciados]
+			),
+		    [Quantidade de Serviços Iniciados]
+		)
+	)
+	ORDER BY DimESTABELECIMENTO[ESTABELECIMENTO],  [Quantidade de Serviços Iniciados] DESC
+			
+
+
+
+
+
+
+--Top 10 estabelecimentos em 2019	
+EVALUATE
+	CALCULATETABLE(		
+			ADDCOLUMNS(				
+				VALUES(DimPACIENTE[PACIENTE]),
+				"Total", [Quantidade de Serviços Iniciados],
+				"Rank", RANKX(ALL(DimPACIENTE[PACIENTE]),[Quantidade de Serviços Iniciados]),
+				"Rank Dense", RANKX(ALL(DimPACIENTE[PACIENTE]),[Quantidade de Serviços Iniciados],,, DENSE)
+			),					
+		Datas[Ano] = 2019
+	)
+	ORDER BY [Total] desc	
+	
+	
+EVALUATE
+	SAMPLE(10, DimESTABELECIMENTO, DimESTABELECIMENTO[MUNICIPIO])
+	
+	
+	
+	
+	
+DEFINE MEASURE FactSERVICO[PY QTD] = 
+	CALCULATE([Quantidade de Serviços Encerrados], SAMEPERIODLASTYEAR(Datas[Data]))
+
+EVALUATE
+
+ADDCOLUMNS(	
+	FILTER(
+		SUMMARIZE(
+			Datas,
+			Datas[Ano],
+			Datas[Mês],
+			"QTD", [Quantidade de Serviços Encerrados]
+		),
+		[QTD] <> 0		
+	),
+	"PY QTD", [PY QTD]
+)
+	
+	
+	
+	
+	
+--Calcula o acumulado dos últimos 12 meses
+DEFINE MEASURE FactSERVICO[MAT Sales] =
+		CALCULATE([Quantidade de Serviços Iniciados],
+			DATESBETWEEN(
+				'Datas'[Data],
+				NEXTDAY( SAMEPERIODLASTYEAR( LASTDATE( 'Datas'[Data] ) ) ),
+				LASTDATE( 'Datas'[Data] )
+			)
+		)
+	
+EVALUATE
+	
+CALCULATETABLE(
+		
+			ADDCOLUMNS(				
+				ALL(Datas[Ano], Datas[nMes]),
+				"Total", [Quantidade de Serviços Iniciados],
+				"MAT", [MAT Sales]
+			),					
+		Datas[Ano] > 2018
+	)
+	ORDER BY Datas[Ano], Datas[nMes] ASC	
+
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	

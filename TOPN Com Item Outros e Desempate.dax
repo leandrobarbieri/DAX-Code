@@ -1,0 +1,101 @@
+﻿//https://dax.do/feeCo3rJ9fzQQy/
+
+/* TopN retorna uma tabela ordenada por uma ou mais colunas */
+
+// Todos os produtos e marcas ordenados pelo mais vendidas (tabela de apoio para validar os resultados TOPN)
+EVALUATE
+SUMMARIZECOLUMNS (        
+        'Product'[Product Name],
+        'Product'[Brand],
+        "Sales", [Sales Amount]
+)
+ORDER BY  [Sales Amount] DESC
+
+
+// Retorna a tabela inteira ordenada. É recomendado sempre selecionar apenas as colunas que serão utilizadas
+EVALUATE
+TOPN (
+    10,
+    'Product',
+    [Sales Amount]
+)
+ORDER BY [Sales Amount] DESC
+
+
+// Retornar somente um subconjunto de colunas
+EVALUATE
+VAR ProductsBrands = 
+    SUMMARIZECOLUMNS (        
+        'Product'[Product Name],
+        'Product'[Brand],
+        "Sales", [Sales Amount]
+    )    
+RETURN
+TOPN (
+    10,
+    ProductsBrands,
+    [Sales Amount]
+)
+ORDER BY [Sales Amount] DESC
+
+
+
+// TOPN: Como tratar os empates
+EVALUATE
+VAR SalesBrand = 
+    ADDCOLUMNS (
+        VALUES ( 'Product'[Brand] ),
+        // Arredonda na casa dos milhoes para simular um empate
+        "Sales", MROUND ( [Sales Amount], 1000000)
+    )
+RETURN
+TOPN (
+    4,
+    SalesBrand,
+    [Sales], DESC,
+    'Product'[Brand], ASC
+)
+ORDER BY [Sales] DESC
+
+
+
+// TOPN: Como incluir uma linha adicional "Outros" com total restante
+EVALUATE
+VAR size = 20
+VAR ProductSales = 
+    SUMMARIZECOLUMNS (
+        'Product'[Product Name],
+        'Product'[Brand],
+        "Sales", [Sales Amount]
+    )
+VAR TopNProducts = 
+    TOPN(
+        size,
+        ProductSales,
+        [Sales], DESC,
+        'Product'[Brand], ASC
+    )
+// Extrai da tabela completa apenas o topn
+VAR OutrosProds = 
+    EXCEPT ( ProductSales, TopNProducts )
+
+// Inclui uma coluna "sort" para ser usada para ordenar o item "Outros" no final da lista
+VAR RankProds = 
+    ADDCOLUMNS (
+        TopNProducts,
+        "Sort", RANKX ( TopNProducts, [Sales] )
+    )
+    
+// Inclui uma nova linha e calcula o total para "Outros"
+VAR LinhaOutros = 
+    ROW(
+        "Product Name", "Outros Produtos",
+        "Brand", "Outras Marcas",
+        "Sales", SUMX ( OutrosProds, [Sales] ),
+        "Sort", size + 1
+    )
+
+RETURN
+    // TopN + a linha "Outros"
+    UNION ( RankProds, LinhaOutros)
+ORDER BY [Sort] ASC

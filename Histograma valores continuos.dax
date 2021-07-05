@@ -1,0 +1,39 @@
+﻿EVALUATE
+// Tamanho dos ranges "binds"
+VAR size = 15
+
+// Faixas de valores criadas a partir dos valores contínuios
+VAR faixas =
+    SELECTCOLUMNS (
+        GENERATESERIES (
+                FLOOR ( MIN ( Sales[Unit Cost] ), size ),
+                CEILING ( MAX ( Sales[Unit Cost] ), size),
+                size
+        ),
+        "Valor1", [Value],
+        "Valor2", [Value] + size
+    )
+
+// Cria a coluna "Quantidade" com o total de ocorrências dentro da faixa
+VAR resultado =    
+    ADDCOLUMNS (
+        faixas,
+        "Quantidade", 
+            CALCULATE (
+                COUNTROWS (Sales),
+                // Filtra a faixa
+                FILTER (
+                    Sales,
+                    Sales[Unit Cost] >= [Valor1]  &&
+                    Sales[Unit Cost] <  [Valor1]  + size
+                )
+            )        
+     )
+        
+RETURN
+SELECTCOLUMNS (
+    resultado,
+    "Faixa Inicio", [Valor1],
+    "Faixa Fim", [Valor1],
+    "Quantidade", [Quantidade]
+)

@@ -2,9 +2,10 @@
  
 VAR diaUTC = INT( TODAY() - UTCTODAY ())
 VAR horasUTC = (NOW() - UTCNOW ()) 
+
 RETURN
 {
-    ("Dias", diaUTC, UTCTODAY(), TODAY()),
-    ("Horas", horasUTC, UTCNOW(), NOW() - 0.125)   
+    ("Dias", diaUTC, UTCTODAY(), TODAY(), UTCTODAY() - 0.125),
+    ("Horas", horasUTC, UTCNOW(),NOW(), UTCNOW() - 0.125)   
 }
 
