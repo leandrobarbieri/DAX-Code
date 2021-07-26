@@ -1,0 +1,41 @@
+﻿//https://dax.do/qLBKpbtKjo3BXC/
+
+// TOP 3 produtos mais vendidas a cada ano
+EVALUATE
+// Faz um join entre o primeiro e segundo argumentos, se a tabela no 2º argumento não retonar nada, a linha é ignorada
+GENERATE (    
+    VALUES ( 'Date'[Calendar Year] ),    
+    /* Neste segundo argumento da GENERATE a CALCULATETABLE é avaliada a cada iteração se o valor retornado for bank o produto é ignorado */    
+    CALCULATETABLE (
+        VAR ProdSales = 
+            ADDCOLUMNS (
+                SUMMARIZE ( Sales, 'Product'[Product Name] ),
+                "Sales", [Sales Amount]
+            )
+        RETURN
+        TOPN ( 3, ProdSales, [Sales] )
+   )
+)
+ORDER BY 'Date'[Calendar Year], [Sales] desc       
+     
+
+// Usando a variação GENERATEALL
+EVALUATE
+// Faz um join entre o primeiro e segundo argumentos e retorna a linha mesmo se a tabela resultar em BLANK 
+GENERATEALL (    
+    VALUES ( 'Date'[Calendar Year] ),        
+    // Aplica o filto do ano na tabela 
+    CALCULATETABLE (
+        VAR ProdSales = 
+            ADDCOLUMNS (
+                SUMMARIZE ( Sales, 'Product'[Product Name] ),
+                "Sales", [Sales Amount]
+            )
+        RETURN
+        TOPN ( 3, ProdSales, [Sales] )
+   )
+)
+ORDER BY 'Date'[Calendar Year], [Sales] desc
+            
+            
+        
