@@ -1,0 +1,38 @@
+﻿// Calcula a quantidade de dias que se passaram desde o último evento "Order Date"
+DEFINE 
+MEASURE Sales[Dias desde a ultima compra] = 
+    VAR vHoje = UTCTODAY () - 0.125 // Trazer para o horário do brasil
+    VAR diasDecimal = vHoje - MAXX ( Sales, Sales[Order Date] + Sales[Order Time])
+    VAR dias = INT(diasDecimal)
+    VAR horasDecimal = (diasDecimal - dias) * 24
+    VAR horas = INT(horasDecimal)
+    RETURN
+    dias & " dias " & horas & " horas."
+    
+    
+// Avaliar a medida a partir da coluna calculada Categorias
+EVALUATE
+VAR tabela = 
+SELECTCOLUMNS (
+    Sales,
+    "Prod", Sales[ProductKey],
+    "Categoria", 
+    SWITCH ( TRUE(),
+    [Quantity] * [Unit Price] < 1000, "Pequena",
+    [Quantity] * [Unit Price] < 10000, "Normal",
+    [Quantity] * [Unit Price] < 1200, "Grande", "Muito Grande"
+    )
+ )
+RETURN
+SUMMARIZE (
+    tabela,
+    [Categoria],
+    "Vendas", [Sales Amount],
+    "Dias", [Dias desde a ultima compra]
+)
+
+
+// Pré análise: identificando maiores compras da base de dados para criar as categorias
+EVALUATE
+// maiores vendas entre 10 e 13 mil
+TOPN ( 10, Sales, [Sales Amount])

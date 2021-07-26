@@ -1,0 +1,56 @@
+﻿// Cálculos com data e hora
+DEFINE 
+
+// Definindo a medida de tempo médio em horas no formato decimal
+MEASURE Sales[Tempo Médio (horas)] = 
+    CALCULATE (
+        AVERAGEX ( 
+            Sales,
+            // Por padrão DAX representa os intervalos entre datas no formato decimal
+            // A parte inteira está na escala de dias, multiplicar por 24 traz para a base de horas em decimal            
+             24 * (Sales[Delivery Date] - (Sales[Order Date] + Sales[Order Time]))
+        )
+    )
+    
+// Definindo a medida para exibir o tempo médio no formato hh:mm:ss
+MEASURE Sales[Tempo Médio (hhmmss)] = 
+    VAR vHorasDecimal = [Tempo Médio (horas)] // Horas em decimal
+    VAR vHoras = INT(vHorasDecimal) // Parte inteira da hora em decimal
+    VAR vMinutosDecimal = 60 * (vHorasDecimal - vHoras) // Transforma em minutos a parte decimal das horas
+    VAR vMinutos = INT(vMinutosDecimal) // Parte inteira dos minutos em decimal
+    VAR vSegundosDecimal = 60 * (vMinutosDecimal - vMinutos) // Transforma em segundos a parte decimal dos minutos
+    VAR vSegundos = ROUND (vSegundosDecimal, 0) // faz um arredondamento e para com a escala em segundos
+    
+    // Avalia se a parte do horário é maior que 1, ou seja, não precisa do complemento "0" na frente do número
+    VAR vHH = IF (LEN(vHoras) = 1, "0" & vHoras, vHoras)
+    VAR vMM = IF (LEN(vMinutos) = 1, "0" & vMinutos, vMinutos)
+    VAR vSS = IF (LEN(vSegundos) = 1, "0" & vSegundos, vSegundos)
+    
+RETURN 
+    // Concatena as partes, transforma em inteiro e utiliza um mascara de formatação hh:mm:ss
+    FORMAT (CONVERT ( vHH & vMM & vSS, INTEGER), "00:00:00")
+
+// Utilizando as medidas criados
+EVALUATE
+SUMMARIZECOLUMNS (
+    'Product'[Category],
+    "Tempo Medio (horas)", Sales[Tempo Médio (horas)],
+    "Tempo Medio (hhmmss)", [Tempo Médio (hhmmss)]
+ )
+ 
+ 
+// Análise preliminar das colunas envolvidas
+EVALUATE
+VAR vTabela =
+    ADDCOLUMNS ( 
+        Sales,
+        "Order", Sales[Order Date],
+        "OrderTime", Sales[Order Time],
+        "OrderTimeDate", Sales[Order Date] + Sales[Order Time],
+        "Delivery", Sales[Delivery Date],
+        "Tempo", 24 * (Sales[Delivery Date] - (Sales[Order Date] + Sales[Order Time]))
+     )
+     
+RETURN
+vTabela
+    
