@@ -1,4 +1,5 @@
-﻿//REMOVEFILTERS, ALLEXCEPT e VALUES - Percent of Parent (Continent)
+﻿//https://dax.do/IVsa9QuvCRchbB/
+//Percent of Parent (Continent): usando REMOVEFILTERS, ALLEXCEPT e VALUES
 
 DEFINE
 // Primeira forma: remover o filtro de Country. Isso retorna o total geral de todos Country. 
@@ -35,15 +36,16 @@ EVALUATE
 
 CALCULATETABLE (
     SUMMARIZECOLUMNS (
-        Customer[Continent],
+        Customer[Continent], //Se comentar essa coluna apeas a 3 versão da função funciona
         Customer[CountryRegion],    
         "Sales", [Sales Amount],
         "Perc Continent", [PercOverContinent],
         "Perc Continent2", [PercOverContinent2],
         "Perc Continent3", [PercOverContinent3]    
     ),
- Customer[Continent] = "Europe"
+ Customer[Continent] IN ({"Europe", "Asia"})
 )
+
 
     
     
