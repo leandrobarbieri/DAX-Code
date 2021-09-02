@@ -1,0 +1,49 @@
+﻿//REMOVEFILTERS, ALLEXCEPT e VALUES - Percent of Parent (Continent)
+
+DEFINE
+// Primeira forma: remover o filtro de Country. Isso retorna o total geral de todos Country. 
+// Porém assim a função apenas funciona para quando o Country está sendo usando 
+// Se usarmos qualquer outro atributo de Customer o calculo vai dar errado.
+MEASURE Sales[PercOverContinent] = 
+    VAR continenteSales = CALCULATE ( [Sales Amount], REMOVEFILTERS ( Customer[CountryRegion] ) )
+    RETURN
+    DIVIDE ( [Sales Amount], continenteSales )
+
+// Uma melhor abordagem é remover todos os filtros exceto Customer[Continent].
+// Isso faz com que o calculo funcione para qualquer coluna da tabela Customer
+MEASURE Sales[PercOverContinent2] = 
+    VAR continenteSales2 = 
+        CALCULATE ( [Sales Amount], ALLEXCEPT ( Customer, Customer[Continent] ) )
+    RETURN
+    DIVIDE ( [Sales Amount], continenteSales2 )
+
+
+// Na medida anterior se não tiver a coluna Continent no conexto o calculo não saberá qual continent usar 
+// Para atender os dois cenários, remove todos os filtros de customer (funciona para todos os campos) 
+// Depois reconstroe apenas para o campo Continent usando a função VALUES 
+MEASURE Sales[PercOverContinent3] = 
+    VAR continenteSales3 = 
+        CALCULATE ( 
+            [Sales Amount], 
+            REMOVEFILTERS ( Customer ),
+            VALUES ( Customer[Continent] ) // Reconstroe o filtro
+        )
+    RETURN
+    DIVIDE ( [Sales Amount], continenteSales3 )
+
+EVALUATE
+
+CALCULATETABLE (
+    SUMMARIZECOLUMNS (
+        Customer[Continent],
+        Customer[CountryRegion],    
+        "Sales", [Sales Amount],
+        "Perc Continent", [PercOverContinent],
+        "Perc Continent2", [PercOverContinent2],
+        "Perc Continent3", [PercOverContinent3]    
+    ),
+ Customer[Continent] = "Europe"
+)
+
+    
+    
